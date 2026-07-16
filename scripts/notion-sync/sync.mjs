@@ -42,6 +42,10 @@ function getIsoDate(prop) {
   return prop?.date?.start ?? "";
 }
 
+function getUrl(prop) {
+  return prop?.url ?? "";
+}
+
 function toKoreanDate(isoDate) {
   if (!isoDate) return "";
   const [y, m, d] = isoDate.split("-");
@@ -62,17 +66,15 @@ function fallbackTitle(typeInfo, isoDate) {
 }
 
 async function findSyncTargets() {
+  // Upsert model: every row with 완료 checked is a sync target, whether or
+  // not it already has a linked issue. ghIssueUpsert() decides create vs
+  // update based on whether "GitHub Issue" is already filled in.
   const results = [];
   let cursor;
   do {
     const res = await notion.databases.query({
       database_id: DATABASE_ID,
-      filter: {
-        and: [
-          { property: "완료", checkbox: { equals: true } },
-          { property: "GitHub Issue", url: { is_empty: true } },
-        ],
-      },
+      filter: { property: "완료", checkbox: { equals: true } },
       start_cursor: cursor,
     });
     results.push(...res.results);
@@ -87,14 +89,62 @@ async function pageToMarkdownBody(pageId) {
   return (mdString.parent ?? "").trim();
 }
 
-function ghIssueCreate({ title, body, labels }) {
+async function writeTempBody(body) {
   const bodyFile = `/tmp/issue-body-${Date.now()}-${Math.random().toString(36).slice(2)}.md`;
-  return writeFile(bodyFile, body, "utf-8").then(() => {
-    const args = ["issue", "create", "--repo", REPO, "--title", title, "--body-file", bodyFile];
-    for (const label of labels) args.push("--label", label);
-    const out = execFileSync("gh", args, { encoding: "utf-8" });
-    return out.trim().split("\n").pop();
-  });
+  await writeFile(bodyFile, body, "utf-8");
+  return bodyFile;
+}
+
+async function ghIssueCreate({ title, body, labels }) {
+  const bodyFile = await writeTempBody(body);
+  const args = ["issue", "create", "--repo", REPO, "--title", title, "--body-file", bodyFile];
+  for (const label of labels) args.push("--label", label);
+  const out = execFileSync("gh", args, { encoding: "utf-8" });
+  return out.trim().split("\n").pop();
+}
+
+function issueNumberFromUrl(url) {
+  return url.trim().split("/").pop();
+}
+
+function ghIssueView(issueNumber) {
+  const out = execFileSync(
+    "gh",
+    ["issue", "view", issueNumber, "--repo", REPO, "--json", "title,body,state"],
+    { encoding: "utf-8" }
+  );
+  return JSON.parse(out);
+}
+
+async function ghIssueUpdate({ issueNumber, title, body }) {
+  const bodyFile = await writeTempBody(body);
+  execFileSync(
+    "gh",
+    ["issue", "edit", issueNumber, "--repo", REPO, "--title", title, "--body-file", bodyFile],
+    { encoding: "utf-8" }
+  );
+}
+
+// Create the issue if the Notion row has no linked issue yet, otherwise
+// update the existing issue in place only if the content actually changed.
+async function ghIssueUpsert({ existingUrl, title, body, labels }) {
+  if (!existingUrl) {
+    const issueUrl = await ghIssueCreate({ title, body, labels });
+    return { issueUrl, created: true, updated: false };
+  }
+
+  const issueNumber = issueNumberFromUrl(existingUrl);
+  const current = ghIssueView(issueNumber);
+  if (current.state === "CLOSED") {
+    console.log(`Issue #${issueNumber} is closed, skipping update.`);
+    return { issueUrl: existingUrl, created: false, updated: false };
+  }
+  if (current.title === title && current.body.trim() === body.trim()) {
+    return { issueUrl: existingUrl, created: false, updated: false };
+  }
+
+  await ghIssueUpdate({ issueNumber, title, body });
+  return { issueUrl: existingUrl, created: false, updated: true };
 }
 
 async function main() {
@@ -132,21 +182,28 @@ async function main() {
     ].join("\n");
 
     const body = `${header}\n${contentMd}`;
+    const existingUrl = getUrl(props["GitHub Issue"]);
 
-    const issueUrl = await ghIssueCreate({
+    const { issueUrl, created, updated } = await ghIssueUpsert({
+      existingUrl,
       title,
       body,
       labels: ["Scrum", typeInfo.label],
     });
 
-    await notion.pages.update({
-      page_id: page.id,
-      properties: {
-        "GitHub Issue": { url: issueUrl },
-      },
-    });
-
-    console.log(`Synced ${page.id} -> ${issueUrl}`);
+    if (created) {
+      await notion.pages.update({
+        page_id: page.id,
+        properties: {
+          "GitHub Issue": { url: issueUrl },
+        },
+      });
+      console.log(`Created ${page.id} -> ${issueUrl}`);
+    } else if (updated) {
+      console.log(`Updated ${page.id} -> ${issueUrl}`);
+    } else {
+      console.log(`Unchanged ${page.id} -> ${issueUrl}`);
+    }
   }
 }
 
