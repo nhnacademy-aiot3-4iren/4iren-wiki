@@ -27,7 +27,7 @@ def fetch_issues(repo):
 def extract_field(body, label):
     if not body:
         return ""
-    match = re.search(rf"### {re.escape(label)}\s*\n\n([^\n]*)", body)
+    match = re.search(rf"### {re.escape(label)}[ \t]*\n\n([^\n]*)", body)
     if not match:
         return ""
     value = match.group(1).strip()
