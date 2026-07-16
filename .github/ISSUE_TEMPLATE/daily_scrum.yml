@@ -35,7 +35,7 @@ body:
     id: time
     attributes:
       label: 진행 시간
-      default: "09:00 ~ 09:15"
+      value: "09:00 ~ 09:15"
   - type: checkboxes
     id: attendees
     attributes:
