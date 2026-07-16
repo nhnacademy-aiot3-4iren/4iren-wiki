@@ -1,0 +1,35 @@
+name: Sync Notion Meeting Log to GitHub Issues
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: scripts/notion-sync
+        run: npm ci
+
+      - name: Sync Notion rows to GitHub issues
+        working-directory: scripts/notion-sync
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: "395f42d4-6532-80c4-a278-db6db47e7fb9"
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: node sync.mjs
