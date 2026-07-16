@@ -5,6 +5,10 @@ on:
     types: [opened, edited, closed, reopened, labeled, unlabeled]
   workflow_dispatch:
 
+concurrency:
+  group: sync-wiki-log
+  cancel-in-progress: false
+
 jobs:
   sync-wiki:
     runs-on: ubuntu-latest
