@@ -1,0 +1,42 @@
+name: Sync Meeting Log to Wiki
+
+on:
+  issues:
+    types: [opened, edited, closed, reopened, labeled, unlabeled]
+  workflow_dispatch:
+
+jobs:
+  sync-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Checkout wiki
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+        run: |
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git" wiki
+
+      - name: Generate meeting log
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 scripts/generate_wiki_log.py
+          mv 회의록.md wiki/회의록.md
+
+      - name: Commit and push if changed
+        working-directory: wiki
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "No changes to publish."
+            exit 0
+          fi
+          git add 회의록.md
+          git commit -m "chore: 회의록 자동 갱신"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git" HEAD:master
