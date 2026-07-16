@@ -1,0 +1,60 @@
+name: Sync Meeting Type to Project
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  sync:
+    if: contains(github.event.issue.labels.*.name, 'Scrum')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Meeting Type project field from label
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PROJECTS_TOKEN }}
+          script: |
+            // 4-iren project (nhnacademy-aiot3-4iren, #2) node IDs — see `gh project field-list 2 --owner nhnacademy-aiot3-4iren`
+            const PROJECT_ID = "PVT_kwDOEebK184BclpS";
+            const FIELD_ID = "PVTSSF_lADOEebK184BclpSzhYCW0w";
+            const OPTION_BY_LABEL = {
+              Daily: "b66ed0a6",
+              Team: "ce7e5f5d",
+              Weekly: "a386d774",
+            };
+
+            const labels = context.payload.issue.labels.map((l) => l.name);
+            const matchedLabel = Object.keys(OPTION_BY_LABEL).find((l) => labels.includes(l));
+            if (!matchedLabel) {
+              core.info(`No Daily/Team/Weekly label on issue #${context.payload.issue.number}, skipping.`);
+              return;
+            }
+            const optionId = OPTION_BY_LABEL[matchedLabel];
+            const issueNodeId = context.payload.issue.node_id;
+
+            // Idempotent: no-op if the issue-form `projects:` key already added it.
+            const addResult = await github.graphql(
+              `mutation($projectId: ID!, $contentId: ID!) {
+                addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
+                  item { id }
+                }
+              }`,
+              { projectId: PROJECT_ID, contentId: issueNodeId }
+            );
+            const itemId = addResult.addProjectV2ItemById.item.id;
+
+            await github.graphql(
+              `mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                updateProjectV2ItemFieldValue(input: {
+                  projectId: $projectId
+                  itemId: $itemId
+                  fieldId: $fieldId
+                  value: { singleSelectOptionId: $optionId }
+                }) {
+                  projectV2Item { id }
+                }
+              }`,
+              { projectId: PROJECT_ID, itemId, fieldId: FIELD_ID, optionId }
+            );
+
+            core.info(`Set Meeting Type = ${matchedLabel} for issue #${context.payload.issue.number}`);
