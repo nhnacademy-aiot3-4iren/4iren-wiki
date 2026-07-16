@@ -1,0 +1,82 @@
+name: 🔵 Weekly Scrum
+description: 주간 진행 상황을 점검하고 차주 계획을 수립합니다.
+title: "[Weekly Scrum] Week X"
+labels: ["Scrum", "Weekly"]
+projects: ["nhnacademy-aiot3-4iren/2"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🗓️ 회의 정보
+  - type: input
+    id: date
+    attributes:
+      label: Date
+      placeholder: "2026년 01월 05일"
+    validations:
+      required: true
+  - type: dropdown
+    id: meeting_type
+    attributes:
+      label: Meeting Type
+      options:
+        - "Daily Scrum"
+        - "Team Meeting"
+        - "Weekly Meeting"
+      default: 2
+    validations:
+      required: true
+  - type: input
+    id: scrum_master
+    attributes:
+      label: ScrumMaster
+      placeholder: "오늘의 진행자를 적어주세요."
+  - type: input
+    id: time
+    attributes:
+      label: 진행 시간
+      placeholder: "ex) 14:00 ~ 15:00"
+  - type: checkboxes
+    id: attendees
+    attributes:
+      label: Attendees
+      options:
+        - label: 김태희
+        - label: 신준식
+        - label: 윤채영
+        - label: 유대연
+        - label: 이정민
+        - label: 전유진
+        - label: 전재나
+        - label: 최이건
+        - label: 황지원
+  - type: textarea
+    id: summary
+    attributes:
+      label: 📋 이번 주 요약
+      description: 이번 주 진행한 작업을 요약해 주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: progress
+    attributes:
+      label: 📈 진행 상황
+      description: 기능별/담당별 진행 상황을 적어주세요.
+      placeholder: "- [ ] LLM 연동 (최이건) : 80% 완료"
+  - type: textarea
+    id: next_week_plan
+    attributes:
+      label: 📅 다음 주 계획
+      description: 다음 주에 집중할 주요 마일스톤을 적어주세요.
+  - type: textarea
+    id: risks
+    attributes:
+      label: ⚠️ 리스크 / 이슈
+      description: 현재 팀이 마주한 리스크나 이슈를 적어주세요.
+  - type: textarea
+    id: action_items
+    attributes:
+      label: ✅ 액션 아이템
+      description: 다음 주까지 처리할 액션 아이템을 체크리스트로 적어주세요.
+      placeholder: |
+        - [ ]

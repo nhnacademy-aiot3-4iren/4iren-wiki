@@ -1,0 +1,66 @@
+name: 🟣 Team Meeting
+description: 이슈/피드백 사항을 다루는 팀 미팅 기록입니다.
+title: "[Team Meeting] YY.MM.DD"
+labels: ["Scrum", "Team"]
+projects: ["nhnacademy-aiot3-4iren/2"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🗓️ 회의 정보
+  - type: input
+    id: date
+    attributes:
+      label: Date
+      placeholder: "2026년 01월 05일"
+    validations:
+      required: true
+  - type: dropdown
+    id: meeting_type
+    attributes:
+      label: Meeting Type
+      options:
+        - "Daily Scrum"
+        - "Team Meeting"
+        - "Weekly Meeting"
+      default: 1
+    validations:
+      required: true
+  - type: input
+    id: scrum_master
+    attributes:
+      label: ScrumMaster
+      placeholder: "오늘의 진행자를 적어주세요."
+  - type: input
+    id: time
+    attributes:
+      label: 진행 시간
+      placeholder: "ex) 14:00 ~ 15:00"
+  - type: checkboxes
+    id: attendees
+    attributes:
+      label: Attendees
+      options:
+        - label: 김태희
+        - label: 신준식
+        - label: 윤채영
+        - label: 유대연
+        - label: 이정민
+        - label: 전유진
+        - label: 전재나
+        - label: 최이건
+        - label: 황지원
+  - type: textarea
+    id: issue_feedback
+    attributes:
+      label: 🗣️ 이슈 / 피드백 사항
+      description: 논의된 이슈나 받은 피드백을 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: feedback_actions
+    attributes:
+      label: 📌 피드백 반영 작업 예정사항
+      description: 피드백을 반영하기 위해 진행할 작업을 체크리스트로 적어주세요.
+      placeholder: |
+        - [ ]

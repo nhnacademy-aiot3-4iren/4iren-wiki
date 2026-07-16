@@ -1,0 +1,99 @@
+name: 🟢 Daily Scrum
+description: 매일 오전 진행 상황과 당일 계획을 공유합니다.
+title: "[Daily Scrum] YY.MM.DD"
+labels: ["Scrum", "Daily"]
+projects: ["nhnacademy-aiot3-4iren/2"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🗓️ 회의 정보
+  - type: input
+    id: date
+    attributes:
+      label: Date
+      placeholder: "2026년 01월 05일"
+    validations:
+      required: true
+  - type: dropdown
+    id: meeting_type
+    attributes:
+      label: Meeting Type
+      options:
+        - "Daily Scrum"
+        - "Team Meeting"
+        - "Weekly Meeting"
+      default: 0
+    validations:
+      required: true
+  - type: input
+    id: scrum_master
+    attributes:
+      label: ScrumMaster
+      placeholder: "오늘의 진행자를 적어주세요."
+  - type: input
+    id: time
+    attributes:
+      label: 진행 시간
+      default: "09:00 ~ 09:15"
+  - type: checkboxes
+    id: attendees
+    attributes:
+      label: Attendees
+      options:
+        - label: 김태희
+        - label: 신준식
+        - label: 윤채영
+        - label: 유대연
+        - label: 이정민
+        - label: 전유진
+        - label: 전재나
+        - label: 최이건
+        - label: 황지원
+  - type: textarea
+    id: goal
+    attributes:
+      label: 🎯 목표
+      description: 오늘 스크럼에서 달성하고자 하는 목표를 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: yesterday
+    attributes:
+      label: 📝 전날 공유 (상황 공유)
+      description: 각자 어제 완료한 작업을 적어주세요.
+      placeholder: |
+        ### 김태희
+        -
+
+        ### 신준식
+        -
+
+        ### ...
+    validations:
+      required: true
+  - type: textarea
+    id: today_todo
+    attributes:
+      label: 🚀 오늘 할 일 (멤버별 To-do)
+      description: 오늘 진행할 작업을 멤버별 체크리스트로 적어주세요.
+      placeholder: |
+        ### 김태희
+        - [ ]
+
+        ### 신준식
+        - [ ]
+
+        ### ...
+    validations:
+      required: true
+  - type: textarea
+    id: blockers
+    attributes:
+      label: ⚠️ 이슈 / 블로커
+      description: 기술적 문제나 논의가 필요한 사항을 적어주세요.
+  - type: textarea
+    id: decisions
+    attributes:
+      label: ✅ 결정사항
+      description: 회의 중 결정된 사항을 적어주세요.
