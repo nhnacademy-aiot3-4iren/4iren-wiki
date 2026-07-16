@@ -31,5 +31,8 @@ jobs:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: "395f42d4-6532-80c4-a278-db6db47e7fb9"
           REPO: ${{ github.repository }}
-          GH_TOKEN: ${{ github.token }}
+          # A PAT (not the default GITHUB_TOKEN) is required here: issues created
+          # with GITHUB_TOKEN do not trigger other workflows (label -> project
+          # field sync, wiki log sync), which would break the downstream chain.
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
         run: node sync.mjs
