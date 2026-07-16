@@ -33,10 +33,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet; then
+          git add 회의록.md
+          if git diff --cached --quiet; then
             echo "No changes to publish."
             exit 0
           fi
-          git add 회의록.md
           git commit -m "chore: 회의록 자동 갱신"
           git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git" HEAD:master
