@@ -16,6 +16,14 @@ const n2m = new NotionToMarkdown({ notionClient: notion });
 
 const MEMBERS = ["김태희", "신준식", "윤채영", "유대연", "이정민", "전유진", "전재나", "최이건", "황지원"];
 
+// Notion 표시 이름이 정식 이름과 다른 경우 매핑 (성/이름 순서 뒤바뀜, 닉네임 등)
+const NAME_ALIASES = {
+  "이건 최": "최이건",
+  "준식 신": "신준식",
+  "NEW JEAN": "전유진",
+  "김태히": "김태희",
+};
+
 const TYPE_MAP = [
   { match: /daily/i, label: "Daily", title: "Daily Scrum" },
   { match: /team/i, label: "Team", title: "Team Meeting" },
@@ -31,7 +39,10 @@ function getSelectName(prop) {
 }
 
 function getPeopleNames(prop) {
-  return (prop?.people ?? []).map((p) => p.name).filter(Boolean);
+  return (prop?.people ?? [])
+    .map((p) => p.name)
+    .filter(Boolean)
+    .map((name) => NAME_ALIASES[name] ?? name);
 }
 
 function getRichText(prop) {
